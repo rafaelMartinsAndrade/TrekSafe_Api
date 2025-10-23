@@ -143,15 +143,6 @@ npm run dev
   }
   ```
 
-## Tecnologias Utilizadas
-
-- Node.js
-- Express
-- MongoDB
-- Mongoose
-- JWT (JSON Web Tokens)
-- bcryptjs
-
 ## Trilhas
 
 ### Criar Trilha
@@ -271,3 +262,58 @@ npm run dev
     ]
   }
   ```
+
+### Obter Trilha por ID
+- **URL**: `/api/treks/:trekId`
+- **Método**: `GET`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Query Params (opcional)**:
+  - `withCoords=true` para incluir coordenadas ordenadas (`orderIndex` asc)
+- **Exemplos**:
+  - `GET /api/treks/652fc1d9e1eabf3f1d123456`
+  - `GET /api/treks/652fc1d9e1eabf3f1d123456?withCoords=true`
+- **Resposta de Sucesso (sem coords)**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "_id": "<trekId>",
+      "title": "Trilha Serra do Mar",
+      "user": "<userId>",
+      "initialLat": -23.5505,
+      "initialLng": -46.6333,
+      "createdAt": "2025-10-23T12:05:00.000Z"
+    }
+  }
+  ```
+- **Resposta de Sucesso (com coords)**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "trek": {
+        "_id": "<trekId>",
+        "title": "Trilha Serra do Mar",
+        "user": "<userId>",
+        "initialLat": -23.5505,
+        "initialLng": -46.6333,
+        "createdAt": "2025-10-23T12:05:00.000Z"
+      },
+      "coords": [
+        { "orderIndex": 0, "lat": -23.5505, "lng": -46.6333, "timestamp": "2025-10-23T10:01:00.000Z" }
+      ]
+    }
+  }
+  ```
+
+## Tecnologias Utilizadas
+
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- JWT (JSON Web Tokens)
+- bcryptjs

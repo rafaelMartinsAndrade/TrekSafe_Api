@@ -100,6 +100,36 @@ router.post('/:trekId/coords', protect, async (req, res) => {
   }
 });
 
+// @desc    Buscar trilha por ID
+// @route   GET /api/treks/:trekId
+// @access  Privado
+router.get('/:trekId', protect, async (req, res) => {
+  try {
+    const { trekId } = req.params;
+    const withCoords = String(req.query.withCoords || '').toLowerCase() === 'true';
+
+    const trek = await Trek.findById(trekId);
+    if (!trek) {
+      return res.status(404).json({ success: false, message: 'Trilha não encontrada' });
+    }
+
+    // Garantir que o usuário é dono da trilha
+    if (String(trek.user) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'Sem permissão para visualizar esta trilha' });
+    }
+
+    if (withCoords) {
+      const coords = await TrekCoord.find({ trek: trek._id }).sort({ orderIndex: 1 });
+      return res.status(200).json({ success: true, data: { trek, coords } });
+    }
+
+    res.status(200).json({ success: true, data: trek });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Erro ao buscar trilha por ID' });
+  }
+});
+
 // @desc    Buscar trilhas por bounding box (minLat, maxLat, minLng, maxLng)
 // @route   GET /api/treks/search
 // @access  Privado
