@@ -31,6 +31,10 @@ const TrekSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
   initialLat: {
     type: Number,
     required: [true, 'Por favor, informe a latitude inicial da trilha']

@@ -36,10 +36,9 @@ const TrekCoordSchema = new mongoose.Schema({
     type: Date,
     required: true
   }
-});
+}, { collection: 'PontosTrilha' });
 
 TrekCoordSchema.index({ trek: 1, orderIndex: 1 }, { unique: true });
-// Índice auxiliar para consultas por bounding box
 TrekCoordSchema.index({ lat: 1, lng: 1 });
 
 module.exports = mongoose.model('TrekCoord', TrekCoordSchema);

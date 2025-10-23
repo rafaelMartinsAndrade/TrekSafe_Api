@@ -42,4 +42,31 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+// @desc    Atualizar dados do usuário (name, email)
+// @route   PUT /api/users/me
+// @access  Privado
+router.put('/me', protect, async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    const update = {};
+    if (name !== undefined) update.name = name;
+    if (email !== undefined) {
+      // Checar unicidade se o email for alterado
+      const existing = await User.findOne({ email });
+      if (existing && String(existing._id) !== String(req.user.id)) {
+        return res.status(400).json({ success: false, message: 'Email já está em uso por outro usuário' });
+      }
+      update.email = email;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, { $set: update }, { new: true, runValidators: true });
+
+    res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ success: false, message: 'Erro no servidor' });
+  }
+});
+
 module.exports = router;

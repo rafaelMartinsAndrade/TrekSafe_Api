@@ -19,6 +19,8 @@ app.use(cors());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/treks', require('./routes/treks'));
+app.use('/api/pois', require('./routes/pois'));
+app.use('/api/favorites', require('./routes/favorites'));
 
 // Rota padrão
 app.get('/', (req, res) => {

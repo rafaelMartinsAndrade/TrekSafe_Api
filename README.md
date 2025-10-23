@@ -162,6 +162,7 @@ npm run dev
     "totalDistance": 7200.5,
     "durationSeconds": 7200,
     "isOnline": true,
+    "isPublic": false,
     "initialLat": -23.5505,
     "initialLng": -46.6333
   }
@@ -169,6 +170,7 @@ npm run dev
 - **Observações**:
   - `initialLat` deve estar entre `-90` e `90`
   - `initialLng` deve estar entre `-180` e `180`
+  - `isPublic`: quando `true`, a trilha aparece para outros usuários nas buscas por área
 - **Resposta de Sucesso**:
   ```json
   {
@@ -227,7 +229,7 @@ npm run dev
   }
   ```
 
-### Filtrar Trilhas por Bounding Box
+### Buscar Trilhas por Bounding Box
 - **URL**: `/api/treks/search`
 - **Método**: `GET`
 - **Headers**:
@@ -235,15 +237,14 @@ npm run dev
   Authorization: Bearer <token>
   ```
 - **Query Params**:
-  - `minLat`, `maxLat`, `minLng`, `maxLng` (números)
+  - `minLat`, `maxLat`, `minLng`, `maxLng` (obrigatórios)
+  - `includePois` (opcional, `true|false`) ? inclui pontos de interesse vinculados às trilhas retornadas
 - **Comportamento**:
-  - Considera dois critérios:
-    - Trilhas com ponto inicial (`initialLat/initialLng`) dentro do retângulo
-    - Trilhas com ao menos uma coordenada (`trek_coords`) dentro do retângulo
-  - Retorna apenas trilhas do usuário autenticado
+  - Considera trilhas do usuário que tenham `initialLat/initialLng` ou qualquer coordenada dentro do bounding box
+  - Inclui também trilhas de outros usuários quando `isPublic=true`
 - **Exemplo**:
-  ```
-  GET /api/treks/search?minLat=-23.56&maxLat=-23.54&minLng=-46.64&maxLng=-46.62
+  ```http
+  GET /api/treks/search?minLat=-23.56&maxLat=-23.54&minLng=-46.64&maxLng=-46.62&includePois=true
   ```
 - **Resposta de Sucesso**:
   ```json
@@ -254,66 +255,88 @@ npm run dev
       {
         "_id": "<trekId>",
         "title": "Trilha Serra do Mar",
-        "user": "<userId>",
+        "isPublic": true,
         "initialLat": -23.5505,
         "initialLng": -46.6333,
-        "createdAt": "2025-10-23T12:05:00.000Z"
-      }
+        "pois": [
+          { "_id": "<poiId>", "name": "Mirante", "lat": -23.551, "lng": -46.6337 },
+          { "_id": "<poiId2>", "name": "Cachoeira" }
+        ]
+      },
+      { "_id": "<trekId2>", "title": "Trilha do Usuário", "isPublic": false }
     ]
   }
   ```
 
-### Obter Trilha por ID
+### Buscar Trilha por ID
 - **URL**: `/api/treks/:trekId`
 - **Método**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
-- **Query Params (opcional)**:
-  - `withCoords=true` para incluir coordenadas ordenadas (`orderIndex` asc)
-- **Exemplos**:
-  - `GET /api/treks/652fc1d9e1eabf3f1d123456`
-  - `GET /api/treks/652fc1d9e1eabf3f1d123456?withCoords=true`
-- **Resposta de Sucesso (sem coords)**:
+- **Query Params**:
+  - `withCoords` (opcional, `true|false`) ? inclui coordenadas ordenadas da trilha
+  - `includePois` (opcional, `true|false`) ? inclui POIs vinculados a esta trilha
+- **Resposta de Sucesso**:
   ```json
   {
     "success": true,
     "data": {
-      "_id": "<trekId>",
-      "title": "Trilha Serra do Mar",
-      "user": "<userId>",
-      "initialLat": -23.5505,
-      "initialLng": -46.6333,
-      "createdAt": "2025-10-23T12:05:00.000Z"
+      "trek": { "_id": "<trekId>", "title": "Trilha" },
+      "coords": [ { "lat": -23.55, "lng": -46.63 } ],
+      "pois": [ { "name": "Ponto de Interesse" } ]
     }
   }
   ```
-- **Resposta de Sucesso (com coords)**:
+
+### Atualizar Trilha
+- **URL**: `/api/treks/:trekId`
+- **Método**: `PUT`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Campos Permitidos**:
+  - `title`, `description`, `startedAt`, `endedAt`, `totalDistance`, `durationSeconds`, `isOnline`, `isPublic`
+  - Não é permitido alterar `initialLat`, `initialLng` ou `user`
+- **Exemplo**:
   ```json
   {
-    "success": true,
-    "data": {
-      "trek": {
-        "_id": "<trekId>",
-        "title": "Trilha Serra do Mar",
-        "user": "<userId>",
-        "initialLat": -23.5505,
-        "initialLng": -46.6333,
-        "createdAt": "2025-10-23T12:05:00.000Z"
-      },
-      "coords": [
-        { "orderIndex": 0, "lat": -23.5505, "lng": -46.6333, "timestamp": "2025-10-23T10:01:00.000Z" }
-      ]
-    }
+    "title": "Trilha Serra do Mar (pública)",
+    "isPublic": true
   }
   ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "data": { "_id": "<trekId>", "isPublic": true } }
+  ```
 
-## Tecnologias Utilizadas
+### POIs
+- **Modelo**: `POI` com campos: `trek`, `name`, `description`, `lat`, `lng`, `alt`
+- **Rotas**:
+  - `POST /api/pois` ? cria POI em trilha do usuário
+  - `GET /api/pois/by-trek/:trekId` ? lista POIs de uma trilha do usuário
+  - `GET /api/pois/:poiId` ? detalhe do POI
+  - `PUT /api/pois/:poiId` ? atualiza POI
+  - `DELETE /api/pois/:poiId` ? remove POI
 
-- Node.js
-- Express
-- MongoDB
-- Mongoose
-- JWT (JSON Web Tokens)
-- bcryptjs
+### Trilhas Favoritas
+- **Modelo**: `FavoriteTrek` (`TrilhasFavoritas`) com `user`, `trek`, `createdAt`
+- **Rotas**:
+  - `POST /api/favorites` ? adiciona trilha aos favoritos do usuário
+  - `GET /api/favorites` ? lista favoritos
+  - `DELETE /api/favorites/:favoriteId` ? remove favorito
+
+### Minhas Trilhas
+- **URL**: `/api/treks/mine`
+- **Método**: `GET`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "count": 3, "data": [ { "_id": "<trekId>" } ] }
+  ```
+
