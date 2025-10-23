@@ -211,7 +211,7 @@ npm run dev
 - **Comportamento**:
   - Ordena por `timestamp` ascendente
   - Atribui `orderIndex` sequencial, continuando de onde parou
-  - Salva na coleção `trek_coords` com chave estrangeira `trek` apontando para a trilha
+  - Salva na coleção `PontosTrilha` com chave estrangeira `trek` apontando para a trilha
 - **Resposta de Sucesso**:
   ```json
   {
@@ -313,22 +313,156 @@ npm run dev
   ```
 
 ### POIs
-- **Modelo**: `POI` com campos: `trek`, `name`, `description`, `lat`, `lng`, `alt`
-- **Rotas**:
-  - `POST /api/pois` ? cria POI em trilha do usuário
-  - `GET /api/pois/by-trek/:trekId` ? lista POIs de uma trilha do usuário
-  - `GET /api/pois/:poiId` ? detalhe do POI
-  - `PUT /api/pois/:poiId` ? atualiza POI
-  - `DELETE /api/pois/:poiId` ? remove POI
+
+#### Criar POI
+- **URL**: `/api/pois`
+- **Método**: `POST`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Corpo da Requisição**:
+  ```json
+  {
+    "trekId": "<trekId>",
+    "name": "Mirante",
+    "lat": -23.551,
+    "lng": -46.6337,
+    "description": "Vista bonita",
+    "alt": 780
+  }
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "_id": "<poiId>",
+      "trek": "<trekId>",
+      "name": "Mirante",
+      "lat": -23.551,
+      "lng": -46.6337,
+      "alt": 780,
+      "createdAt": "2025-10-23T12:05:00.000Z"
+    }
+  }
+  ```
+
+#### Listar POIs por Trilha
+- **URL**: `/api/pois/by-trek/:trekId`
+- **Método**: `GET`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  {
+    "success": true,
+    "count": 2,
+    "data": [
+      { "_id": "<poiId>", "name": "Mirante", "lat": -23.551, "lng": -46.6337 },
+      { "_id": "<poiId2>", "name": "Cachoeira" }
+    ]
+  }
+  ```
+
+#### Obter POI por ID
+- **URL**: `/api/pois/:poiId`
+- **Método**: `GET`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "data": { "_id": "<poiId>", "name": "Mirante" } }
+  ```
+
+#### Atualizar POI
+- **URL**: `/api/pois/:poiId`
+- **Método**: `PUT`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Corpo da Requisição** (campos opcionais):
+  ```json
+  { "name": "Novo nome", "description": "...", "lat": -23.552, "lng": -46.6338, "alt": 790 }
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "data": { "_id": "<poiId>", "name": "Novo nome" } }
+  ```
+
+#### Remover POI
+- **URL**: `/api/pois/:poiId`
+- **Método**: `DELETE`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "message": "POI removido com sucesso" }
+  ```
 
 ### Trilhas Favoritas
-- **Modelo**: `FavoriteTrek` (`TrilhasFavoritas`) com `user`, `trek`, `createdAt`
-- **Rotas**:
-  - `POST /api/favorites` ? adiciona trilha aos favoritos do usuário
-  - `GET /api/favorites` ? lista favoritos
-  - `DELETE /api/favorites/:favoriteId` ? remove favorito
+
+#### Adicionar Favorito
+- **URL**: `/api/favorites`
+- **Método**: `POST`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Corpo da Requisição**:
+  ```json
+  { "trekId": "<trekId>" }
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "data": { "_id": "<favoriteId>", "trek": "<trekId>", "user": "<userId>" } }
+  ```
+
+#### Listar Favoritos
+- **URL**: `/api/favorites`
+- **Método**: `GET`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  {
+    "success": true,
+    "count": 1,
+    "data": [
+      {
+        "_id": "<favoriteId>",
+        "trek": { "_id": "<trekId>", "title": "Trilha Serra do Mar", "isPublic": true },
+        "user": "<userId>",
+        "createdAt": "2025-10-23T12:05:00.000Z"
+      }
+    ]
+  }
+  ```
+
+#### Remover Favorito
+- **URL**: `/api/favorites/:favoriteId`
+- **Método**: `DELETE`
+- **Headers**:
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Resposta de Sucesso**:
+  ```json
+  { "success": true, "message": "Favorito removido com sucesso" }
+  ```
 
 ### Minhas Trilhas
+
+#### Listar Minhas Trilhas
 - **URL**: `/api/treks/mine`
 - **Método**: `GET`
 - **Headers**:
@@ -337,6 +471,5 @@ npm run dev
   ```
 - **Resposta de Sucesso**:
   ```json
-  { "success": true, "count": 3, "data": [ { "_id": "<trekId>" } ] }
+  { "success": true, "count": 3, "data": [ { "_id": "<trekId>", "title": "Trilha" } ] }
   ```
-
