@@ -1,44 +1,176 @@
 # TrekSafe API
 
-API de autenticação para o sistema TrekSafe, desenvolvida com Node.js, Express e MongoDB.
+API de autenticaÃ§Ã£o para o sistema TrekSafe, desenvolvida com Node.js, Express e suporte para MongoDB e PostgreSQL.
 
-## Configuração
+## ?? VersÃµes DisponÃ­veis
 
-1. Instale as dependências:
-```
+### MongoDB (VersÃ£o Original)
+- Usando Mongoose como ODM
+- Banco de dados MongoDB
+- Servidor: `server.js`
+
+### PostgreSQL com Prisma (Nova VersÃ£o)
+- Usando Prisma como ORM
+- Banco de dados PostgreSQL
+- Servidor: `serverPrisma.js`
+- **Recomendada para novos projetos**
+
+## ConfiguraÃ§Ã£o
+
+### ?? PrÃ©-requisitos
+- Node.js (versÃ£o 16 ou superior)
+- MongoDB **OU** PostgreSQL
+- npm ou yarn
+
+### 1. Instalar DependÃªncias
+```bash
 npm install
 ```
 
-2. Configure as variáveis de ambiente:
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-```
+### 2. Configurar VariÃ¡veis de Ambiente
+
+#### Para MongoDB (VersÃ£o Original)
+Crie um arquivo `.env` na raiz do projeto:
+```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/treksafe
 JWT_SECRET=seu_segredo_jwt
 JWT_EXPIRE=24h
 ```
 
-3. Inicie o servidor:
-```
-npm start
+#### Para PostgreSQL com Prisma (Nova VersÃ£o)
+Crie um arquivo `.env` na raiz do projeto:
+```env
+PORT=3000
+DATABASE_URL="postgresql://username:password@localhost:5432/treksafe_db?schema=public"
+JWT_SECRET=seu_segredo_jwt
+JWT_EXPIRE=24h
 ```
 
-Para desenvolvimento:
-```
+### 3. ConfiguraÃ§Ã£o do Banco
+
+#### MongoDB
+Certifique-se de que o MongoDB estÃ¡ rodando localmente ou configure a URI de conexÃ£o.
+
+#### PostgreSQL com Prisma
+1. **Configure o PostgreSQL**:
+   ```bash
+   npm run setup
+   ```
+
+2. **Execute a migraÃ§Ã£o**:
+   ```bash
+   npm run migrate
+   ```
+
+3. **Gere o cliente Prisma** (se necessÃ¡rio):
+   ```bash
+   npm run db:generate
+   ```
+
+### 4. Iniciar o Servidor
+
+#### MongoDB (VersÃ£o Original)
+```bash
+# ProduÃ§Ã£o
+npm start
+
+# Desenvolvimento
 npm run dev
 ```
 
+#### PostgreSQL com Prisma (Nova VersÃ£o)
+```bash
+# ProduÃ§Ã£o
+npm run start:prisma
+
+# Desenvolvimento
+npm run dev:prisma
+```
+
+## ??? Scripts DisponÃ­veis
+
+### Scripts Gerais
+- `npm start` - Servidor MongoDB (produÃ§Ã£o)
+- `npm run dev` - Servidor MongoDB (desenvolvimento)
+- `npm test` - Executar testes
+
+### Scripts Prisma (PostgreSQL)
+- `npm run start:prisma` - Servidor Prisma (produÃ§Ã£o)
+- `npm run dev:prisma` - Servidor Prisma (desenvolvimento)
+- `npm run setup` - ConfiguraÃ§Ã£o inicial PostgreSQL
+- `npm run migrate` - MigraÃ§Ã£o completa do banco
+- `npm run db:generate` - Gerar cliente Prisma
+- `npm run db:push` - Aplicar schema ao banco
+- `npm run db:studio` - Interface visual do banco
+- `npm run db:reset` - Resetar banco (cuidado!)
+- `npm run test:connection` - Testar conexÃ£o PostgreSQL
+- `npm run test:modules` - Testar carregamento de mÃ³dulos
+
+## ?? Health Check
+
+Verifique se a API estÃ¡ funcionando:
+
+### MongoDB
+```bash
+GET http://localhost:3000/api/health
+```
+
+### PostgreSQL com Prisma
+```bash
+GET http://localhost:3000/api/health
+```
+
+## ð??? DocumentaÃ§Ã£o Adicional
+
+- **[PRISMA_SETUP.md](./PRISMA_SETUP.md)** - Guia completo de configuraÃ§Ã£o do Prisma
+- **[MIGRATION_SUMMARY.md](./MIGRATION_SUMMARY.md)** - Resumo da migraÃ§Ã£o para PostgreSQL
+- **[test-api.http](./test-api.http)** - Exemplos de requisiÃ§Ãµes para testar a API
+
+## ð??? DiferenÃ§as Entre as VersÃµes
+
+### MongoDB vs PostgreSQL
+
+| Aspecto | MongoDB (Original) | PostgreSQL + Prisma (Nova) |
+|---------|-------------------|----------------------------|
+| **Banco de Dados** | MongoDB (NoSQL) | PostgreSQL (SQL) |
+| **ORM/ODM** | Mongoose | Prisma |
+| **Type Safety** | Limitado | Completo |
+| **Performance** | Boa | Excelente |
+| **Queries** | MongoDB Query Language | SQL otimizado |
+| **Ferramentas** | MongoDB Compass | Prisma Studio |
+| **Escalabilidade** | Horizontal | Vertical e Horizontal |
+| **ACID** | Limitado | Completo |
+
+### Compatibilidade de Endpoints
+
+â?? **Todos os endpoints sÃ£o compatÃ­veis** entre as duas versÃµes  
+â?? **Mesma estrutura de resposta** JSON  
+â?? **Mesma autenticaÃ§Ã£o** JWT  
+â?? **Mesmas validaÃ§Ãµes** de entrada  
+
+### MigraÃ§Ã£o de Dados
+
+Para migrar dados existentes do MongoDB para PostgreSQL:
+
+1. **Exporte** dados do MongoDB
+2. **Configure** PostgreSQL com Prisma
+3. **Execute** scripts de migraÃ§Ã£o personalizados
+4. **Valide** integridade dos dados
+
+> ð??¡ **Dica**: Use a versÃ£o PostgreSQL para novos projetos devido Ã s melhorias de performance e type safety.
+
 ## Endpoints da API
 
-### Autenticação
+### AutenticaÃ§Ã£o
 
-#### Registrar Usuário
+#### Registrar UsuÃ¡rio
 - **URL**: `/api/auth/register`
-- **Método**: `POST`
-- **Corpo da Requisição**:
+- **MÃ©todo**: `POST`
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
-    "name": "Nome do Usuário",
+    "name": "Nome do UsuÃ¡rio",
     "email": "usuario@email.com",
     "password": "senha123"
   }
@@ -51,10 +183,10 @@ npm run dev
   }
   ```
 
-#### Login de Usuário
+#### Login de UsuÃ¡rio
 - **URL**: `/api/auth/login`
-- **Método**: `POST`
-- **Corpo da Requisição**:
+- **MÃ©todo**: `POST`
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
     "email": "usuario@email.com",
@@ -69,9 +201,9 @@ npm run dev
   }
   ```
 
-#### Logout de Usuário
+#### Logout de UsuÃ¡rio
 - **URL**: `/api/auth/logout`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**: 
   ```
   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -85,10 +217,10 @@ npm run dev
   }
   ```
 
-#### Solicitar Recuperação de Senha
+#### Solicitar RecuperaÃ§Ã£o de Senha
 - **URL**: `/api/auth/forgot-password`
-- **Método**: `POST`
-- **Corpo da Requisição**:
+- **MÃ©todo**: `POST`
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
     "email": "usuario@email.com"
@@ -98,15 +230,15 @@ npm run dev
   ```json
   {
     "success": true,
-    "message": "Email de recuperação enviado",
-    "resetToken": "token_de_recuperacao" // Em produção, não retornar o token diretamente
+    "message": "Email de recuperaÃ§Ã£o enviado",
+    "resetToken": "token_de_recuperacao" // Em produÃ§Ã£o, nÃ£o retornar o token diretamente
   }
   ```
 
 #### Redefinir Senha
 - **URL**: `/api/auth/reset-password/:resettoken`
-- **Método**: `PUT`
-- **Corpo da Requisição**:
+- **MÃ©todo**: `PUT`
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
     "password": "nova_senha123"
@@ -121,11 +253,11 @@ npm run dev
   }
   ```
 
-### Usuários
+### UsuÃ¡rios
 
-#### Obter Usuário Atual
+#### Obter UsuÃ¡rio Atual
 - **URL**: `/api/users/me`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**: 
   ```
   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -136,7 +268,7 @@ npm run dev
     "success": true,
     "data": {
       "_id": "60d21b4667d0d8992e610c85",
-      "name": "Nome do Usuário",
+      "name": "Nome do UsuÃ¡rio",
       "email": "usuario@email.com",
       "createdAt": "2023-06-22T19:12:24.985Z"
     }
@@ -147,12 +279,12 @@ npm run dev
 
 ### Criar Trilha
 - **URL**: `/api/treks`
-- **Método**: `POST`
+- **MÃ©todo**: `POST`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
-- **Corpo da Requisição**:
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
     "title": "Trilha Serra do Mar",
@@ -167,10 +299,10 @@ npm run dev
     "initialLng": -46.6333
   }
   ```
-- **Observações**:
+- **ObservaÃ§Ãµes**:
   - `initialLat` deve estar entre `-90` e `90`
   - `initialLng` deve estar entre `-180` e `180`
-  - `isPublic`: quando `true`, a trilha aparece para outros usuários nas buscas por área
+  - `isPublic`: quando `true`, a trilha aparece para outros usuÃ¡rios nas buscas por Ã¡rea
 - **Resposta de Sucesso**:
   ```json
   {
@@ -193,12 +325,12 @@ npm run dev
 
 ### Adicionar Coordenadas da Trilha
 - **URL**: `/api/treks/:trekId/coords`
-- **Método**: `POST`
+- **MÃ©todo**: `POST`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
-- **Corpo da Requisição**:
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
     "coords": [
@@ -211,7 +343,7 @@ npm run dev
 - **Comportamento**:
   - Ordena por `timestamp` ascendente
   - Atribui `orderIndex` sequencial, continuando de onde parou
-  - Salva na coleção `PontosTrilha` com chave estrangeira `trek` apontando para a trilha
+  - Salva na coleÃ§Ã£o `PontosTrilha` com chave estrangeira `trek` apontando para a trilha
 - **Resposta de Sucesso**:
   ```json
   {
@@ -231,17 +363,17 @@ npm run dev
 
 ### Buscar Trilhas por Bounding Box
 - **URL**: `/api/treks/search`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
 - **Query Params**:
-  - `minLat`, `maxLat`, `minLng`, `maxLng` (obrigatórios)
-  - `includePois` (opcional, `true|false`) ? inclui pontos de interesse vinculados às trilhas retornadas
+  - `minLat`, `maxLat`, `minLng`, `maxLng` (obrigatÃ³rios)
+  - `includePois` (opcional, `true|false`) ? inclui pontos de interesse vinculados Ã s trilhas retornadas
 - **Comportamento**:
-  - Considera trilhas do usuário que tenham `initialLat/initialLng` ou qualquer coordenada dentro do bounding box
-  - Inclui também trilhas de outros usuários quando `isPublic=true`
+  - Considera trilhas do usuÃ¡rio que tenham `initialLat/initialLng` ou qualquer coordenada dentro do bounding box
+  - Inclui tambÃ©m trilhas de outros usuÃ¡rios quando `isPublic=true`
 - **Exemplo**:
   ```http
   GET /api/treks/search?minLat=-23.56&maxLat=-23.54&minLng=-46.64&maxLng=-46.62&includePois=true
@@ -263,14 +395,14 @@ npm run dev
           { "_id": "<poiId2>", "name": "Cachoeira" }
         ]
       },
-      { "_id": "<trekId2>", "title": "Trilha do Usuário", "isPublic": false }
+      { "_id": "<trekId2>", "title": "Trilha do UsuÃ¡rio", "isPublic": false }
     ]
   }
   ```
 
 ### Buscar Trilha por ID
 - **URL**: `/api/treks/:trekId`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -292,18 +424,18 @@ npm run dev
 
 ### Atualizar Trilha
 - **URL**: `/api/treks/:trekId`
-- **Método**: `PUT`
+- **MÃ©todo**: `PUT`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
 - **Campos Permitidos**:
   - `title`, `description`, `startedAt`, `endedAt`, `totalDistance`, `durationSeconds`, `isOnline`, `isPublic`
-  - Não é permitido alterar `initialLat`, `initialLng` ou `user`
+  - NÃ£o Ã© permitido alterar `initialLat`, `initialLng` ou `user`
 - **Exemplo**:
   ```json
   {
-    "title": "Trilha Serra do Mar (pública)",
+    "title": "Trilha Serra do Mar (pÃºblica)",
     "isPublic": true
   }
   ```
@@ -316,12 +448,12 @@ npm run dev
 
 #### Criar POI
 - **URL**: `/api/pois`
-- **Método**: `POST`
+- **MÃ©todo**: `POST`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
-- **Corpo da Requisição**:
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   {
     "trekId": "<trekId>",
@@ -350,7 +482,7 @@ npm run dev
 
 #### Listar POIs por Trilha
 - **URL**: `/api/pois/by-trek/:trekId`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -369,7 +501,7 @@ npm run dev
 
 #### Obter POI por ID
 - **URL**: `/api/pois/:poiId`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -381,12 +513,12 @@ npm run dev
 
 #### Atualizar POI
 - **URL**: `/api/pois/:poiId`
-- **Método**: `PUT`
+- **MÃ©todo**: `PUT`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
-- **Corpo da Requisição** (campos opcionais):
+- **Corpo da RequisiÃ§Ã£o** (campos opcionais):
   ```json
   { "name": "Novo nome", "description": "...", "lat": -23.552, "lng": -46.6338, "alt": 790 }
   ```
@@ -397,7 +529,7 @@ npm run dev
 
 #### Remover POI
 - **URL**: `/api/pois/:poiId`
-- **Método**: `DELETE`
+- **MÃ©todo**: `DELETE`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -411,12 +543,12 @@ npm run dev
 
 #### Adicionar Favorito
 - **URL**: `/api/favorites`
-- **Método**: `POST`
+- **MÃ©todo**: `POST`
 - **Headers**:
   ```
   Authorization: Bearer <token>
   ```
-- **Corpo da Requisição**:
+- **Corpo da RequisiÃ§Ã£o**:
   ```json
   { "trekId": "<trekId>" }
   ```
@@ -427,7 +559,7 @@ npm run dev
 
 #### Listar Favoritos
 - **URL**: `/api/favorites`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -450,7 +582,7 @@ npm run dev
 
 #### Remover Favorito
 - **URL**: `/api/favorites/:favoriteId`
-- **Método**: `DELETE`
+- **MÃ©todo**: `DELETE`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -464,7 +596,7 @@ npm run dev
 
 #### Listar Minhas Trilhas
 - **URL**: `/api/treks/mine`
-- **Método**: `GET`
+- **MÃ©todo**: `GET`
 - **Headers**:
   ```
   Authorization: Bearer <token>
@@ -473,3 +605,87 @@ npm run dev
   ```json
   { "success": true, "count": 3, "data": [ { "_id": "<trekId>", "title": "Trilha" } ] }
   ```
+
+## ?? Estrutura do Projeto
+
+```
+TrekSafe_API/
+??? ?? config/
+?   ??? db.js              # Configuração MongoDB
+?   ??? prisma.js          # Configuração Prisma
+??? ?? controllers/
+?   ??? authController.js      # Autenticação (MongoDB)
+?   ??? authControllerPrisma.js # Autenticação (Prisma)
+?   ??? trekController.js      # Trilhas (MongoDB)
+?   ??? trekControllerPrisma.js # Trilhas (Prisma)
+?   ??? poiController.js       # POIs (MongoDB)
+?   ??? poiControllerPrisma.js  # POIs (Prisma)
+?   ??? favoriteController.js      # Favoritos (MongoDB)
+?   ??? favoriteControllerPrisma.js # Favoritos (Prisma)
+??? ?? middleware/
+?   ??? auth.js            # Middleware de autenticação
+?   ??? errorHandler.js    # Tratamento de erros
+?   ??? asyncHandler.js    # Handler assíncrono
+??? ?? models/
+?   ??? User.js           # Modelo User (Mongoose)
+?   ??? Trek.js           # Modelo Trek (Mongoose)
+?   ??? Poi.js            # Modelo POI (Mongoose)
+?   ??? Favorite.js       # Modelo Favorite (Mongoose)
+??? ?? prisma/
+?   ??? schema.prisma     # Schema do banco PostgreSQL
+?   ??? migrations/       # Migrações do banco
+??? ?? routes/
+?   ??? auth.js           # Rotas de autenticação
+?   ??? treks.js          # Rotas de trilhas
+?   ??? pois.js           # Rotas de POIs
+?   ??? favorites.js      # Rotas de favoritos
+??? ?? scripts/
+?   ??? setup-postgres.js    # Setup PostgreSQL
+?   ??? test-connection.js   # Teste de conexão
+?   ??? test-modules.js      # Teste de módulos
+??? ?? utils/
+?   ??? sendEmail.js      # Envio de emails
+?   ??? geocoding.js      # Geocodificação
+??? server.js             # Servidor MongoDB
+??? serverPrisma.js       # Servidor PostgreSQL
+??? package.json          # Dependências e scripts
+??? .env                  # Variáveis de ambiente
+??? .gitignore           # Arquivos ignorados
+??? PRISMA_SETUP.md      # Guia Prisma
+??? MIGRATION_SUMMARY.md # Resumo migração
+??? test-api.http        # Testes da API
+??? README.md            # Este arquivo
+```
+
+## ?? Próximos Passos
+
+### Para Desenvolvedores
+
+1. **Clone o repositório**
+2. **Escolha a versão** (MongoDB ou PostgreSQL)
+3. **Configure o ambiente** seguindo este README
+4. **Execute os testes** com `test-api.http`
+5. **Desenvolva** novas funcionalidades
+
+### Funcionalidades Futuras
+
+- [ ] Cache com Redis
+- [ ] Upload de imagens
+- [ ] Notificações push
+- [ ] API de mapas integrada
+- [ ] Análise de trilhas
+- [ ] Sistema de reviews
+- [ ] Integração com wearables
+
+## ?? Suporte
+
+Para dúvidas ou problemas:
+
+1. **Verifique** a documentação adicional
+2. **Execute** os scripts de teste
+3. **Consulte** os logs de erro
+4. **Abra** uma issue no repositório
+
+---
+
+**TrekSafe API** - Desenvolvido com ?? para aventureiros digitais

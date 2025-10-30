@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                   String   @id @default(cuid())
+  nome                 String
+  email                String   @unique
+  senha                String
+  resetPasswordToken   String?
+  resetPasswordExpire  DateTime?
+  criadoEm             DateTime @default(now())
+  
+  // Relacionamentos
+  trilhas              Trilha[]
+  trilhasFavoritas     TrilhaFavorita[]
+  
+  @@map("usuarios")
+}
+
+model Trilha {
+  id                   String   @id @default(cuid())
+  titulo               String
+  descricao            String?
+  usuarioId            String
+  iniciadaEm           DateTime?
+  finalizadaEm         DateTime?
+  distanciaTotal       Float    @default(0)
+  duracaoSegundos      Int      @default(0)
+  online               Boolean  @default(true)
+  publica              Boolean  @default(false)
+  latitudeInicial      Float
+  longitudeInicial     Float
+  criadaEm             DateTime @default(now())
+  
+  // Relacionamentos
+  usuario              Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  coordenadas          PontoTrilha[]
+  pois                 POI[]
+  trilhasFavoritas     TrilhaFavorita[]
+  
+  @@map("trilhas")
+}
+
+model PontoTrilha {
+  id                   String   @id @default(cuid())
+  trilhaId             String
+  indiceOrdem          Int
+  latitude             Float
+  longitude            Float
+  altitude             Float?
+  precisao             Float?
+  velocidade           Float?
+  direcao              Float?
+  timestamp            DateTime
+  
+  // Relacionamentos
+  trilha               Trilha   @relation(fields: [trilhaId], references: [id], onDelete: Cascade)
+  
+  @@unique([trilhaId, indiceOrdem])
+  @@index([latitude, longitude])
+  @@map("pontos_trilha")
+}
+
+model POI {
+  id                   String   @id @default(cuid())
+  trilhaId             String
+  nome                 String
+  descricao            String?
+  latitude             Float
+  longitude            Float
+  altitude             Float?
+  criadoEm             DateTime @default(now())
+  
+  // Relacionamentos
+  trilha               Trilha   @relation(fields: [trilhaId], references: [id], onDelete: Cascade)
+  
+  @@index([trilhaId])
+  @@map("pois")
+}
+
+model TrilhaFavorita {
+  id                   String   @id @default(cuid())
+  usuarioId            String
+  trilhaId             String
+  criadaEm             DateTime @default(now())
+  
+  // Relacionamentos
+  usuario              Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  trilha               Trilha   @relation(fields: [trilhaId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId, trilhaId])
+  @@map("trilhas_favoritas")
+}
+
+// Modelos adicionais baseados no diagrama
+
+model Arquitetura {
+  id                   String   @id @default(cuid())
+  nome                 String
+  descricao            String?
+  criadoEm             DateTime @default(now())
+  
+  @@map("arquiteturas")
+}
+
+model UsuarioAdministrador {
+  id                   String   @id @default(cuid())
+  usuarioId            String   @unique
+  permissoes           String[]
+  criadoEm             DateTime @default(now())
+  
+  @@map("usuarios_administradores")
+}
+
+model UsuarioExecutivo {
+  id                   String   @id @default(cuid())
+  usuarioId            String   @unique
+  departamento         String?
+  criadoEm             DateTime @default(now())
+  
+  @@map("usuarios_executivos")
+}
+
+model FuncionalidadeSeguranca {
+  id                   String   @id @default(cuid())
+  nome                 String
+  descricao            String?
+  ativo                Boolean  @default(true)
+  criadoEm             DateTime @default(now())
+  
+  @@map("funcionalidades_seguranca")
+}
+
+model PontoInteresse {
+  id                   String   @id @default(cuid())
+  nome                 String
+  descricao            String?
+  latitude             Float
+  longitude            Float
+  altitude             Float?
+  categoria            String?
+  publico              Boolean  @default(true)
+  criadoEm             DateTime @default(now())
+  
+  @@index([latitude, longitude])
+  @@map("pontos_interesse")
+}
+
+model TipoIncidente {
+  id                   String   @id @default(cuid())
+  nome                 String
+  descricao            String?
+  gravidade            String?
+  criadoEm             DateTime @default(now())
+  
+  // Relacionamentos
+  incidentes           Incidente[]
+  
+  @@map("tipos_incidente")
+}
+
+model Incidente {
+  id                   String   @id @default(cuid())
+  tipoIncidenteId      String
+  latitude             Float
+  longitude            Float
+  descricao            String?
+  gravidade            String?
+  status               String   @default("aberto")
+  reportadoPor         String?
+  criadoEm             DateTime @default(now())
+  
+  // Relacionamentos
+  tipoIncidente        TipoIncidente @relation(fields: [tipoIncidenteId], references: [id])
+  
+  @@index([latitude, longitude])
+  @@map("incidentes")
+}
+
+model Comentario {
+  id                   String   @id @default(cuid())
+  conteudo             String
+  autorId              String?
+  trilhaId             String?
+  criadoEm             DateTime @default(now())
+  
+  @@map("comentarios")
+}
+
+model Coordenada {
+  id                   String   @id @default(cuid())
+  latitude             Float
+  longitude            Float
+  altitude             Float?
+  precisao             Float?
+  criadoEm             DateTime @default(now())
+  
+  @@index([latitude, longitude])
+  @@map("coordenadas")
+}
+
+model Estatistica {
+  id                   String   @id @default(cuid())
+  nome                 String
+  valor                Float
+  unidade              String?
+  categoria            String?
+  criadoEm             DateTime @default(now())
+  
+  @@map("estatisticas")
+}
+
+model LogAtividade {
+  id                   String   @id @default(cuid())
+  usuarioId            String?
+  acao                 String
+  detalhes             String?
+  ipAddress            String?
+  userAgent            String?
+  criadoEm             DateTime @default(now())
+  
+  @@index([usuarioId])
+  @@index([criadoEm])
+  @@map("logs_atividade")
+}
+
+model NotificacaoSeguranca {
+  id                   String   @id @default(cuid())
+  titulo               String
+  mensagem             String
+  tipo                 String
+  prioridade           String   @default("media")
+  lida                 Boolean  @default(false)
+  usuarioId            String?
+  criadoEm             DateTime @default(now())
+  
+  @@index([usuarioId])
+  @@map("notificacoes_seguranca")
+}

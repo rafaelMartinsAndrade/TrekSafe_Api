@@ -1,0 +1,106 @@
+# TrekSafe API - Testes com Prisma
+# Use este arquivo com extensões como REST Client no VS Code
+
+### Health Check
+GET http://localhost:3000/api/health
+
+### Registrar usuário
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "email": "joao@teste.com",
+  "senha": "123456"
+}
+
+### Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@teste.com",
+  "senha": "123456"
+}
+
+### Obter dados do usuário (substitua TOKEN pelo JWT recebido no login)
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer TOKEN
+
+### Criar trilha (substitua TOKEN pelo JWT)
+POST http://localhost:3000/api/treks
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{
+  "nome": "Trilha do Pico",
+  "descricao": "Uma bela trilha até o pico da montanha",
+  "dificuldade": "MODERADA",
+  "distancia": 5.2,
+  "duracao": 180,
+  "publica": true
+}
+
+### Listar trilhas
+GET http://localhost:3000/api/treks
+
+### Buscar trilhas com filtros
+GET http://localhost:3000/api/treks?search=pico&dificuldade=MODERADA&publica=true
+
+### Obter trilha específica (substitua ID)
+GET http://localhost:3000/api/treks/ID
+
+### Adicionar coordenadas à trilha (substitua ID e TOKEN)
+POST http://localhost:3000/api/treks/ID/coordinates
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{
+  "coordenadas": [
+    {
+      "latitude": -23.5505,
+      "longitude": -46.6333,
+      "altitude": 760,
+      "timestamp": "2024-01-15T10:00:00Z"
+    },
+    {
+      "latitude": -23.5515,
+      "longitude": -46.6343,
+      "altitude": 780,
+      "timestamp": "2024-01-15T10:05:00Z"
+    }
+  ]
+}
+
+### Criar POI (substitua TOKEN)
+POST http://localhost:3000/api/pois
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{
+  "trilhaId": "ID_DA_TRILHA",
+  "nome": "Cachoeira",
+  "descricao": "Linda cachoeira no meio da trilha",
+  "tipo": "CACHOEIRA",
+  "latitude": -23.5510,
+  "longitude": -46.6338
+}
+
+### Listar POIs de uma trilha
+GET http://localhost:3000/api/pois/trek/ID_DA_TRILHA
+
+### Adicionar trilha aos favoritos (substitua TOKEN)
+POST http://localhost:3000/api/favorites
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{
+  "trilhaId": "ID_DA_TRILHA"
+}
+
+### Listar favoritos (substitua TOKEN)
+GET http://localhost:3000/api/favorites
+Authorization: Bearer TOKEN
+
+### Trilhas mais favoritadas
+GET http://localhost:3000/api/favorites/popular

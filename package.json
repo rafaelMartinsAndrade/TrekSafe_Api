@@ -5,7 +5,17 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:prisma": "node serverPrisma.js",
     "dev": "nodemon server.js",
+    "dev:prisma": "nodemon serverPrisma.js",
+    "setup": "node scripts/setup-postgres.js",
+    "migrate": "node scripts/migrate.js",
+    "test:connection": "node scripts/test-connection.js",
+    "test:modules": "node scripts/test-modules.js",
+    "db:generate": "npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:reset": "npx prisma db push --force-reset",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -14,11 +24,14 @@
     "login",
     "nodejs",
     "express",
-    "mongodb"
+    "mongodb",
+    "postgresql",
+    "prisma"
   ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^5.7.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -27,6 +40,7 @@
     "mongoose": "^7.5.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "prisma": "^5.7.1"
   }
 }
