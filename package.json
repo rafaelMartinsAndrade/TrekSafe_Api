@@ -1,8 +1,9 @@
 {
   "name": "treksafe-api",
   "version": "1.0.0",
-  "description": "API para autenticação de usuários do TrekSafe",
+  "description": "API para autenticacao de usuarios do TrekSafe",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js",
     "start:prisma": "node serverPrisma.js",
