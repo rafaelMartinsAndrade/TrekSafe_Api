@@ -1,22 +1,91 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 const User = require('../models/User');
 
-// @desc    Registrar usuário
+// @desc    Login de usuÃ¡rio
+// @route   POST /api/auth/login
+// @access  PÃºblico
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    console.log('ğŸ” Tentativa de login:', email);
+
+    // Validar email e senha
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Por favor, forneÃ§a email e senha' 
+      });
+    }
+
+    // Verificar usuÃ¡rio
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Credenciais invÃ¡lidas' 
+      });
+    }
+
+    // Verificar se a senha corresponde
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Credenciais invÃ¡lidas' 
+      });
+    }
+
+    // Criar token
+    const token = user.getSignedJwtToken();
+
+    console.log('âœ… Login realizado com sucesso:', email);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email
+        },
+        token,
+        refreshToken: token
+      }
+    });
+  } catch (err) {
+    console.error('âŒ Erro no login:', err.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro no servidor' 
+    });
+  }
+});
+
+// @desc    Registrar usuÃ¡rio
 // @route   POST /api/auth/register
-// @access  Público
+// @access  PÃºblico
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Verificar se o usuário já existe
+    console.log('ğŸ” Tentativa de registro:', email);
+
+    // Verificar se o usuÃ¡rio jÃ¡ existe
     let user = await User.findOne({ email });
 
     if (user) {
-      return res.status(400).json({ success: false, message: 'Usuário já existe' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'UsuÃ¡rio jÃ¡ existe' 
+      });
     }
 
-    // Criar usuário
+    // Criar usuÃ¡rio
     user = await User.create({
       name,
       email,
@@ -26,56 +95,30 @@ router.post('/register', async (req, res) => {
     // Criar token
     const token = user.getSignedJwtToken();
 
+    console.log('âœ… UsuÃ¡rio criado:', email);
+
     res.status(201).json({
       success: true,
-      token
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email
+        },
+        token,
+        refreshToken: token
+      }
     });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ success: false, message: 'Erro no servidor' });
+    console.error('âŒ Erro no registro:', err.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro no servidor' 
+    });
   }
 });
 
-// @desc    Login de usuário
-// @route   POST /api/auth/login
-// @access  Público
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Validar email e senha
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Por favor, forneça email e senha' });
-    }
-
-    // Verificar usuário
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
-    }
-
-    // Verificar se a senha corresponde
-    const isMatch = await user.matchPassword(password);
-
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
-    }
-
-    // Criar token
-    const token = user.getSignedJwtToken();
-
-    res.status(200).json({
-      success: true,
-      token
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ success: false, message: 'Erro no servidor' });
-  }
-});
-
-// @desc    Logout de usuário / limpar cookie
+// @desc    Logout de usuÃ¡rio / limpar cookie
 // @route   GET /api/auth/logout
 // @access  Privado
 router.get('/logout', async (req, res) => {
@@ -91,9 +134,9 @@ router.get('/logout', async (req, res) => {
   }
 });
 
-// @desc    Solicitar recuperação de senha
+// @desc    Solicitar recuperaÃ§Ã£o de senha
 // @route   POST /api/auth/forgot-password
-// @access  Público
+// @access  PÃºblico
 router.post('/forgot-password', async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -101,39 +144,37 @@ router.post('/forgot-password', async (req, res) => {
     if (!user) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Não existe usuário com esse email' 
+        message: 'NÃ£o existe usuÃ¡rio com esse email' 
       });
     }
 
-    // Gerar token de recuperação
+    // Gerar token de recuperaÃ§Ã£o
     const resetToken = user.getResetPasswordToken();
 
     await user.save({ validateBeforeSave: false });
-
-    // Em um ambiente real, enviaríamos um email com o link de recuperação
-    // Aqui apenas retornamos o token para fins de demonstração
     
     res.status(200).json({
       success: true,
-      message: 'Email de recuperação enviado',
-      resetToken // Em produção, não retornar o token diretamente
+      message: 'Email de recuperaÃ§Ã£o enviado',
+      resetToken
     });
   } catch (err) {
     console.error(err.message);
     
-    // Se ocorrer um erro, limpar os campos de recuperação
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    // Se ocorrer um erro, limpar os campos de recuperaÃ§Ã£o
+    if (user) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
     
-    await user.save({ validateBeforeSave: false });
-    
-    res.status(500).json({ success: false, message: 'Erro ao enviar email de recuperação' });
+    res.status(500).json({ success: false, message: 'Erro ao enviar email de recuperaÃ§Ã£o' });
   }
 });
 
 // @desc    Redefinir senha
 // @route   PUT /api/auth/reset-password/:resettoken
-// @access  Público
+// @access  PÃºblico
 router.put('/reset-password/:resettoken', async (req, res) => {
   try {
     // Obter token hashed
@@ -150,7 +191,7 @@ router.put('/reset-password/:resettoken', async (req, res) => {
     if (!user) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Token inválido ou expirado' 
+        message: 'Token invÃ¡lido ou expirado' 
       });
     }
 
