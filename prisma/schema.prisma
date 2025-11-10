@@ -98,7 +98,7 @@ model POI {
   latitude             Float
   longitude            Float
   altitude             Float?
-  categoria            POICategory?
+  categoria            POICategory? @default(landmark)
   criadoEm             DateTime @default(now())
   
   // Relacionamentos

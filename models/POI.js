@@ -44,7 +44,8 @@ const POISchema = new mongoose.Schema({
       'photo',
       'rest',
       'other'
-    ]
+    ],
+    default: 'landmark'
   },
   createdAt: {
     type: Date,
