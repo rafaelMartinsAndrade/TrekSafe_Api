@@ -10,13 +10,26 @@ const router = express.Router();
 // @access  Private
 router.post('/', protect, async (req, res) => {
   try {
-    const { trilhaId, nome, descricao, lat, lng, alt } = req.body;
+    const { trilhaId, nome, descricao, lat, lng, alt, category } = req.body;
+
+    const allowedCategories = [
+      'landmark','viewpoint','water','shelter','danger','parking','food','camping',
+      'bridge','cave','summit','waterfall','wildlife','photo','rest','other'
+    ];
 
     // Validação
     if (!trilhaId || !nome || !lat || !lng) {
       return res.status(400).json({
         success: false,
         error: 'TrilhaId, nome, latitude e longitude são obrigatórios'
+      });
+    }
+
+    // Validar categoria se fornecida
+    if (category !== undefined && !allowedCategories.includes(String(category))) {
+      return res.status(400).json({
+        success: false,
+        error: 'Categoria inválida'
       });
     }
 
@@ -35,7 +48,9 @@ router.post('/', protect, async (req, res) => {
       descricao,
       latitude: parseFloat(lat),
       longitude: parseFloat(lng),
-      altitude: alt ? parseFloat(alt) : null
+      altitude: alt ? parseFloat(alt) : null,
+      // mapear "category" (API) para "categoria" (Prisma)
+      categoria: category !== undefined ? String(category) : undefined
     };
 
     const poi = await POI.create(poiData);
@@ -135,7 +150,12 @@ router.get('/:poiId', protect, async (req, res) => {
 router.put('/:poiId', protect, async (req, res) => {
   try {
     const { poiId } = req.params;
-    const { nome, descricao, lat, lng, alt } = req.body;
+    const { nome, descricao, lat, lng, alt, category } = req.body;
+
+    const allowedCategories = [
+      'landmark','viewpoint','water','shelter','danger','parking','food','camping',
+      'bridge','cave','summit','waterfall','wildlife','photo','rest','other'
+    ];
 
     const poi = await POI.findById(poiId);
     if (!poi) {
@@ -160,6 +180,12 @@ router.put('/:poiId', protect, async (req, res) => {
     if (lat !== undefined) updateData.latitude = parseFloat(lat);
     if (lng !== undefined) updateData.longitude = parseFloat(lng);
     if (alt !== undefined) updateData.altitude = alt ? parseFloat(alt) : null;
+    if (category !== undefined) {
+      if (!allowedCategories.includes(String(category))) {
+        return res.status(400).json({ success: false, error: 'Categoria inválida' });
+      }
+      updateData.categoria = String(category);
+    }
 
     const poiAtualizado = await POI.update(poiId, updateData);
 

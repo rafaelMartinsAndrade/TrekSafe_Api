@@ -10,6 +10,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enum para categoria de POIs
+enum POICategory {
+  landmark
+  viewpoint
+  water
+  shelter
+  danger
+  parking
+  food
+  camping
+  bridge
+  cave
+  summit
+  waterfall
+  wildlife
+  photo
+  rest
+  other
+}
+
 model Usuario {
   id                   String   @id @default(cuid())
   nome                 String
@@ -78,6 +98,7 @@ model POI {
   latitude             Float
   longitude            Float
   altitude             Float?
+  categoria            POICategory?
   criadoEm             DateTime @default(now())
   
   // Relacionamentos

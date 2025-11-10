@@ -25,6 +25,27 @@ const POISchema = new mongoose.Schema({
   alt: {
     type: Number
   },
+  category: {
+    type: String,
+    enum: [
+      'landmark',
+      'viewpoint',
+      'water',
+      'shelter',
+      'danger',
+      'parking',
+      'food',
+      'camping',
+      'bridge',
+      'cave',
+      'summit',
+      'waterfall',
+      'wildlife',
+      'photo',
+      'rest',
+      'other'
+    ]
+  },
   createdAt: {
     type: Date,
     default: Date.now
