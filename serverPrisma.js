@@ -26,11 +26,102 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  const originalJson = res.json.bind(res);
+  const originalSend = res.send.bind(res);
+  let responseBody;
+  let requestBodyOutput = '';
+  let requestHeadersOutput = '';
+
+  const maskSensitive = value => {
+    if (!value) return value;
+    if (typeof value !== 'object') return value;
+    const sensitive = new Set(['token', 'accessToken', 'refreshToken', 'password', 'senha', 'resetToken']);
+    const clone = Array.isArray(value) ? value.map(v => maskSensitive(v)) : { ...value };
+    Object.keys(clone).forEach(k => {
+      if (sensitive.has(k) && typeof clone[k] === 'string') clone[k] = '[redacted]';
+      if (typeof clone[k] === 'object') clone[k] = maskSensitive(clone[k]);
+    });
+    return clone;
+  };
+
+  res.json = body => {
+    responseBody = body;
+    return originalJson(body);
+  };
+
+  res.send = body => {
+    responseBody = body;
+    return originalSend(body);
+  };
+
+  try {
+    const maxLen = 2000;
+    const maskedReq = maskSensitive(req.body);
+    let reqOut;
+    if (maskedReq === undefined) {
+      reqOut = '';
+    } else if (typeof maskedReq === 'object') {
+      reqOut = JSON.stringify(maskedReq);
+    } else if (typeof maskedReq === 'string') {
+      reqOut = maskedReq;
+    } else {
+      reqOut = String(maskedReq);
+    }
+    if (reqOut.length > maxLen) reqOut = reqOut.slice(0, maxLen) + '?(truncated)';
+    requestBodyOutput = reqOut;
+  } catch (e) {}
+
+  try {
+    const maxLen = 2000;
+    const headers = { ...req.headers };
+    const sensitiveHeaderKeys = new Set(['authorization', 'cookie', 'x-api-key']);
+    Object.keys(headers).forEach(k => {
+      if (sensitiveHeaderKeys.has(k)) headers[k] = '[redacted]';
+    });
+    let hdrOut = JSON.stringify(headers);
+    if (hdrOut.length > maxLen) hdrOut = hdrOut.slice(0, maxLen) + '?(truncated)';
+    requestHeadersOutput = hdrOut;
+  } catch (e) {}
+
+  res.on('finish', () => {
+    try {
+      const duration = Date.now() - start;
+      const status = res.statusCode;
+      let output;
+      if (typeof responseBody === 'object') {
+        const masked = maskSensitive(responseBody);
+        output = JSON.stringify(masked);
+      } else if (typeof responseBody === 'string') {
+        output = responseBody;
+      } else if (responseBody !== undefined) {
+        output = String(responseBody);
+      } else {
+        output = '';
+      }
+      const maxLen = 2000;
+      if (output.length > maxLen) output = output.slice(0, maxLen) + '?(truncated)';
+      console.log(`?? ${req.method} ${req.path} ${status} ${duration}ms`);
+      if (requestHeadersOutput && requestHeadersOutput.length > 0) {
+        console.log(`?? Request Headers: ${requestHeadersOutput}`);
+      }
+      if (requestBodyOutput && requestBodyOutput.length > 0) {
+        console.log(`?? Request Body: ${requestBodyOutput}`);
+      }
+      console.log(`?? Response Body: ${output}`);
+    } catch (e) {}
+  });
+
+  next();
+});
+
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/treks', trekRoutes);
 app.use('/api/pois', poiRoutes);
 app.use('/api/favorites', favoriteRoutes);
+app.use('/api/users', authRoutes);
 
 // Rota de teste
 app.get('/api/health', async (req, res) => {

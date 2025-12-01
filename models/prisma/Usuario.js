@@ -7,6 +7,9 @@ class Usuario {
   // Criar usuário
   static async create(data) {
     const { nome, email, senha } = data;
+    if (!nome || !email || !senha || typeof senha !== 'string' || senha.trim().length === 0) {
+      throw new Error('Dados inválidos para criação de usuário');
+    }
     
     // Criptografar senha
     const salt = await bcrypt.genSalt(10);

@@ -15,9 +15,10 @@ exports.protect = async (req, res, next) => {
 
   // Verificar se o token existe
   if (!token) {
+    console.log(req.headers)
     return res.status(401).json({ 
       success: false, 
-      message: 'Não autorizado para acessar esta rota' 
+      message: 'Token não encontrado nos Headers' 
     });
   }
 
@@ -28,9 +29,10 @@ exports.protect = async (req, res, next) => {
     req.user = await User.findById(decoded.id);
     next();
   } catch (err) {
+    console.log(err)
     return res.status(401).json({ 
       success: false, 
-      message: 'Não autorizado para acessar esta rota' 
+      message: 'Erro ao validar token' 
     });
   }
 };

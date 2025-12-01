@@ -1,31 +1,36 @@
 const express = require('express');
 const Usuario = require('../../models/prisma/Usuario');
-const { protect } = require('../../middleware/auth');
+const { protect } = require('../../middleware/authPrisma');
 
 const router = express.Router();
 
-// @desc    Registrar usuário
+// @desc    Registrar usu?rio
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', async (req, res) => {
   try {
-    const { nome, email, senha } = req.body;
+    const email = typeof req.body.email === 'string' ? req.body.email.trim() : req.body.email;
+    const nomeRaw = req.body.nome || req.body.name || req.body.username;
+    const senhaRaw = req.body.senha || req.body.password || req.body.pass || req.body.pwd;
+    const nome = typeof nomeRaw === 'string' ? nomeRaw.trim() : nomeRaw;
+    const senha = typeof senhaRaw === 'string' ? senhaRaw.trim() : senhaRaw;
 
-    // Verificar se usuário já existe
+    // Verificar se usu?rio j? existe
     const usuarioExistente = await Usuario.findByEmail(email);
     if (usuarioExistente) {
       return res.status(400).json({
         success: false,
-        error: 'Usuário já existe'
+        error: 'Usu?rio j? existe'
       });
     }
 
-    // Criar usuário
-    const usuario = await Usuario.create({
-      nome,
-      email,
-      senha
-    });
+    if (!nome || !email || !senha) {
+      return res.status(400).json({
+        success: false,
+        error: 'Por favor, forneca nome, email e senha'
+      });
+    }
+    const usuario = await Usuario.create({ nome, email, senha });
 
     // Gerar token
     const token = Usuario.getSignedJwtToken(usuario.id);
@@ -48,27 +53,29 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// @desc    Login usuário
+// @desc    Login usu?rio
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', async (req, res) => {
   try {
-    const { email, senha } = req.body;
+    const email = typeof req.body.email === 'string' ? req.body.email.trim() : req.body.email;
+    const senhaRaw = req.body.senha || req.body.password || req.body.pass || req.body.pwd;
+    const senha = typeof senhaRaw === 'string' ? senhaRaw.trim() : senhaRaw;
 
     // Validar email e senha
     if (!email || !senha) {
       return res.status(400).json({
         success: false,
-        error: 'Por favor, forneça email e senha'
+        error: 'Por favor, forne?a email e senha'
       });
     }
 
-    // Buscar usuário
+    // Buscar usu?rio
     const usuario = await Usuario.findByEmail(email);
     if (!usuario) {
       return res.status(401).json({
         success: false,
-        error: 'Credenciais inválidas'
+        error: 'Credenciais inv?lidas'
       });
     }
 
@@ -77,7 +84,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        error: 'Credenciais inválidas'
+        error: 'Credenciais inv?lidas'
       });
     }
 
@@ -102,7 +109,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// @desc    Obter usuário atual
+// @desc    Obter usu?rio atual
 // @route   GET /api/auth/me
 // @access  Private
 router.get('/me', protect, async (req, res) => {
@@ -138,7 +145,7 @@ router.post('/forgotpassword', async (req, res) => {
     if (!usuario) {
       return res.status(404).json({
         success: false,
-        error: 'Usuário não encontrado'
+        error: 'Usu?rio n?o encontrado'
       });
     }
 
@@ -151,12 +158,12 @@ router.post('/forgotpassword', async (req, res) => {
       resetPasswordExpire
     });
 
-    // Aqui você enviaria o email com o token
+    // Aqui voc? enviaria o email com o token
     // Por enquanto, retornamos o token na resposta (apenas para desenvolvimento)
     res.status(200).json({
       success: true,
       message: 'Token de reset enviado',
-      resetToken // Remover em produção
+      resetToken // Remover em produ??o
     });
   } catch (error) {
     console.error(error);
@@ -186,7 +193,7 @@ router.put('/resetpassword/:resettoken', async (req, res) => {
     if (!usuario) {
       return res.status(400).json({
         success: false,
-        error: 'Token inválido'
+        error: 'Token inv?lido'
       });
     }
 

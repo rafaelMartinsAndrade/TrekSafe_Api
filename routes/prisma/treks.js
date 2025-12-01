@@ -2,7 +2,7 @@ const express = require('express');
 const Trilha = require('../../models/prisma/Trilha');
 const PontoTrilha = require('../../models/prisma/PontoTrilha');
 const POI = require('../../models/prisma/POI');
-const { protect } = require('../../middleware/auth');
+const { protect } = require('../../middleware/authPrisma');
 
 const router = express.Router();
 

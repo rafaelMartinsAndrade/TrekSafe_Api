@@ -17,7 +17,7 @@ exports.protect = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({
       success: false,
-      error: 'Não autorizado para acessar esta rota'
+      error: 'Token não encontrado na validação do prisma'
     });
   }
 
@@ -31,7 +31,7 @@ exports.protect = async (req, res, next) => {
     if (!usuario) {
       return res.status(401).json({
         success: false,
-        error: 'Não autorizado para acessar esta rota'
+        error: 'Usuário não encontrado'
       });
     }
 
@@ -46,7 +46,7 @@ exports.protect = async (req, res, next) => {
     console.error(error);
     return res.status(401).json({
       success: false,
-      error: 'Não autorizado para acessar esta rota'
+      error: 'Erro ao validar token/usuário'
     });
   }
 };
